@@ -13,7 +13,6 @@ public class Main {
 	public static void main(String[] args) {
 		GameField gameFrame = new GameField("My Tetris v1");
 		gameFrame.setBackground(new Color(50,120,120));
-		gameFrame.go();
 		gameFrame.setSize(gameFrame.getWidth(),gameFrame.getHeight()+40);
 	}
 }

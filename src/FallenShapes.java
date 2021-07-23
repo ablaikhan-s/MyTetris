@@ -1,3 +1,4 @@
+import java.awt.Container;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -6,6 +7,7 @@ public class FallenShapes {
 	ArrayList<Integer> fullLines = new ArrayList<>();
 	ArrayList<Integer> fallingBlocks = new ArrayList<>();
 	ArrayList<Integer> tempList = new ArrayList<Integer>();
+	
 	int[] arrayLocation = null;
 	
 	public boolean isEmpty() {
@@ -35,34 +37,58 @@ public class FallenShapes {
 	public boolean isLineFull() {
 		boolean result = false;
 		fullLines.clear();
-		for (int i=0;i<GameField.getGameFieldHight();i++) {
+		for (int i=0;i<GameField.getGameFieldHight();i++) {// end of loop by HIGHT
 			int count =0;
-			for (int j=0; j<GameField.getGameFieldWeight();j++) {
-				if ( location.contains((i*GameField.getGameFieldWeight())+j))
+			for (int j=0; j<GameField.getGameFieldWeight();j++) { //loop by WEIGHT
+				if ( location.contains((i*GameField.getGameFieldWeight())+j)) { // if block of gameField is in location
 					count++;
 					if (count == GameField.getGameFieldWeight()) {
 						fullLines.add(i);
+						System.out.println("Full lines index is: " + i);
 						result = true;
-						}
-					}
-			}
+						}	
+				}	// if block of game field is in location
+			}	 // end of loop by WEIGHT
+		} // end of loop by HIGHT
 		return result;
-	}
+	} // end of isLineFull
 	
+	
+	public void makeFallingBlocksList(){
+		fallingBlocks.clear();
+		int maxIndex = Collections.max(fullLines);
+		int gameFieldWeight = GameField.getGameFieldWeight();
+		for (int i=0; i<location.size(); i++) { 
+			System.out.println( "index: " + (int)Math.floor(location.get(i) / gameFieldWeight ) + " Item: " + location.get(i) + " MaxIndex: " + maxIndex);
+			if(  (int)Math.floor(location.get(i) / gameFieldWeight ) < maxIndex) { // if location element index in gameField is less than last destroyed line
+				fallingBlocks.add(location.get(i));
+		}
+		}
+	}
+	public void blocksFall() {
+		int gameFieldWeight = GameField.getGameFieldWeight();
+		fallingBlocks.sort(null);
+		for (int j=fallingBlocks.size()-1; j>=0 ;j--) {
+			location.set(location.indexOf(fallingBlocks.get(j)), fallingBlocks.get(j) + gameFieldWeight);
+			makeFallingBlocksList();
+			System.out.println( "New index: " + (int)Math.floor(location.get(j) / gameFieldWeight ) + " Item: " + location.get(j));
+			}
+		
+	}
 	public void destroyFullLine() {
 		for (int i=0; i<fullLines.size();i++)
 		for (int j=0; j<GameField.getGameFieldWeight();j++) {
 			location.remove((Integer)((fullLines.get(i)*GameField.getGameFieldWeight())+j));	
 		}
-	}
-
-		public void blocksFall() {
-			int gameFieldWeight = GameField.getGameFieldWeight();
-			for (int j=0; j<fallingBlocks.size() ;j++)
-				location.set(location.indexOf(fallingBlocks.get(j)), fallingBlocks.get(j) + gameFieldWeight);
-		}
+		makeFallingBlocksList();// SUCCESS
+		//for (int c=0; c<fullLines.size(); c++)
+			blocksFall();
+			blocksFall();
+	}	
 	
-	public boolean contains(ArrayList<Integer> array) {
+
+	
+	public boolean contains(ArrayList<Integer> array) { // // Not used in this game!
 		boolean result = false;
 		tempList.clear();
 		
@@ -76,10 +102,9 @@ public class FallenShapes {
 		
 		return result;
 	}
-	public boolean canBlockFall() {
+	public boolean canBlockFall() { // Not used in this game!
 		boolean result = false;
 		if (!location.isEmpty()) {
-			
 			int[] lastLine = GameField.getLastLine();
 			int gameFieldWeight = GameField.getGameFieldWeight();
 			int gameFieldHight = GameField.getGameFieldHight();
@@ -111,7 +136,7 @@ public class FallenShapes {
 
 	}
 	
-	public boolean canBlockFall(ArrayList<Integer> array, int hight) {
+	public boolean canBlockFall(ArrayList<Integer> array, int hight) { // Not used in this game!
 		boolean result = false;
 		fallingBlocks.clear();
 		if (!location.isEmpty())
