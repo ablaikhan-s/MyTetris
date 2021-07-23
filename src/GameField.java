@@ -32,85 +32,15 @@ public class GameField extends JFrame{
 	int[] fallenShapesArray;
 	static int[] lastLine;
 	static int[] firstLine;
-	int gameSpeed = 10;
+	int gameSpeed = 1;
 	boolean gameIsRunning = false;
 	
 	public GameField(String title) {
 		super(title);
-		addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent evt) { 
-                char key = evt.getKeyChar();
-            	if ( key == 'a' || key == 'A' || key == 'ф' || key == 'Ф' ) moveShape("left");
-            	else if ( key == 'd' || key == 'D' || key == 'в' || key == 'В') moveShape("right");
-            	else if ( key == 's' || key == 'S' || key == 'ы' || key == 'Ы') {
-            		if (!isGameOver()) 
-        				if (shapeIsAlive) { 
-        					moveShape(); // thapes fall if it's alive
-        					randomShapeLocation = randomShape.getLocation(); // getting actual locations of alive shape
-        					fallenShapesArray = fallenShapes.getLocation(); // getting actual locations of fallen shapes
-        					if (isFallen()) {  // check if shape fell onto another shape or onto the bottom of gamefield
-        						shapeIsAlive = false; // setting shape as alive
-        						fallenShapes.add(randomShapeLocation); // adding fallen shape to fallenShapes list
-        						repaint();
-        						if (fallenShapes.isLineFull()) { // check if there are full lines for destroying 
-        							fallenShapes.destroyFullLine(); // dostroy them if exists
-        							// begin falling objects
-        							ArrayList<Integer> tempArray = new ArrayList<Integer>();
-        							if (!fallenShapes.isEmpty())
-        							for ( int i=0; i<fallenShapes.getHighestPosition(); i++ ) {	
-        							for (int h=0; h<gameFieldHight;h++) {
-        								tempArray.clear();
-        								for ( int w=0; w<gameFieldWeight; w++ ) {
-        									tempArray.add( (h*gameFieldWeight)+w  );
-        									}
-        								if (fallenShapes.canBlockFall(tempArray, h))
-        									fallenShapes.blocksFall();	
-        							}
-        						} 
-        							// end
-        							}
-        							repaint();
-        						}
-        				}
-            	}
-                }
-        });
-	}
-	
-	public void startGame() {
-		if (!gameIsRunning) {
-			createShape(); 
-			gameIsRunning = true;
-			repaint();
-			if (isFallen()) {
-				shapeIsAlive = false;
-				fallenShapes.add(randomShapeLocation);
-			}
-			timer.start();
-		} else System.out.println("Game is already running");
-	}
-	
-	public void stopGame() { 
-		gameIsRunning = false;
-		repaint();
-		fallenShapes.clearLocations();
 
-		timer.stop();
-	}
-	
-	public void pauseGame() { 
-		timer.stop();
-	}
-	
-	public void continueGame() { 
-		timer.start();
-	}
-	
-	public void go() {
-		lastLine = new int[gameFieldWeight]; // Массив последней линии игрового поля
+		lastLine = new int[gameFieldWeight]; // РњР°СЃСЃРёРІ РїРѕСЃР»РµРґРЅРµР№ Р»РёРЅРёРё РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ
 		for (int i=gameFieldWeight-1;i>=0; i--)	lastLine[i] = (gameFieldWeight*gameFieldHight)-i-1;
-		firstLine = new int[gameFieldWeight]; // Массив первой линии игрового поля
+		firstLine = new int[gameFieldWeight]; // РњР°СЃСЃРёРІ РїРµСЂРІРѕР№ Р»РёРЅРёРё РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ
 		for (int i=0;i<gameFieldWeight; i++) firstLine[i] = i;
 		// Making FRAME
 		JButton stopButton = new JButton("Stop");
@@ -138,12 +68,71 @@ public class GameField extends JFrame{
 		setLocation(400, 50);
 		setVisible(true); 
 		
-		
+		// keyEvents
+		InputMap inputMap = startButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    ActionMap actionMap = startButton.getActionMap();
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("LEFT"), "goLeft");
+	    actionMap.put("goLeft", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	moveShape("left");	       
+	        }
+	      });
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "goRight");
+	    actionMap.put("goRight", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	moveShape("right");
+	        }
+	      });
+	   
+	    inputMap.put(KeyStroke.getKeyStroke("DOWN"), "goDown");
+	    actionMap.put("goDown", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	for (int i=0; i<gameFieldHight;i++) {
+	        		if (!isFallen()) moveShape(); 
+	        		if (!shapeIsAlive) break;
+	        	}
+	        	
+    			repaint();
+    					}
+	      });
+	}
+	
+	public void startGame() {
+		if (!gameIsRunning) {
+			createShape(); 
+			gameIsRunning = true;
+			repaint();
+			if (isFallen()) {
+				shapeIsAlive = false;
+				fallenShapes.add(randomShapeLocation);
+			}
+			timer.start();
+		} else System.out.println("Game is already running");
+	}
+	
+	public void stopGame() { 
+		timer.stop();
+		fallenShapes.clearLocations();
+		repaint();
+		gameIsRunning = false;
 		}
 	
-	public void createShape() { // Создание объектов-фигур для игрового поля
+	public void pauseGame() { 
+		timer.stop();
+	}
+	
+	public void continueGame() { 
+		timer.start();
+	}
+	
+	public void createShape() { // РЎРѕР·РґР°РЅРёРµ РѕР±СЉРµРєС‚РѕРІ-С„РёРіСѓСЂ РґР»СЏ РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ
 			randomShapeIndex = getRandomNumber(7);
-			//randomShapeIndex = 1; // для теста
+			//randomShapeIndex = 1; // РґР»СЏ С‚РµСЃС‚Р°
 			switch (randomShapeIndex) {
 	           case  (0): {
 	        	   iShape = new IShape(gameFieldWeight, gameFieldHight) ;
@@ -189,30 +178,33 @@ public class GameField extends JFrame{
 			shapeIsAlive = true;	
 	}
 	
-	public void moveShape(){ // Изменение координат объекта-фигуры - вниз по игровому полю
+	public void moveShape(){ // РР·РјРµРЅРµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РѕР±СЉРµРєС‚Р°-С„РёРіСѓСЂС‹ - РІРЅРёР· РїРѕ РёРіСЂРѕРІРѕРјСѓ РїРѕР»СЋ
 		randomShape.fall();
 	}
 	public boolean isFallen() {
 		randomShapeLocation = randomShape.getLocation();
-		// Столкнулась ли объект-фигура с упавшими объект-фигурами?
+		// РЎС‚РѕР»РєРЅСѓР»Р°СЃСЊ Р»Рё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР° СЃ СѓРїР°РІС€РёРјРё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР°РјРё?
+		
 		if (!fallenShapes.isEmpty()) {
 			int [] newFallLocation = randomShape.getNewFallLocation();
 			for (int a=0; a<4; a++) 
 			for (int b=0; b<fallenShapesArray.length ;b++) 
 				if (newFallLocation[a] == fallenShapesArray[b] ) {
+					shapeIsAlive = false;
 					return true;
 				}
 			}
-		// Упала ли объект-фигура на дно игрового поля?
+		// РЈРїР°Р»Р° Р»Рё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР° РЅР° РґРЅРѕ РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ?
 		for (int i=0; i<4; i++) 
 		for (int j=0; j<lastLine.length ;j++)
 			if (randomShapeLocation[i] == lastLine[j] ) {
+				shapeIsAlive = false;
 				return true;
 
 			}
 		return false;
 	}
-	public void moveShape(String direction){ // Изменение координат объекта-фигуры - влево/вправо по игровому полю
+	public void moveShape(String direction){ // РР·РјРµРЅРµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РѕР±СЉРµРєС‚Р°-С„РёРіСѓСЂС‹ - РІР»РµРІРѕ/РІРїСЂР°РІРѕ РїРѕ РёРіСЂРѕРІРѕРјСѓ РїРѕР»СЋ
 		if (!isGameOver()) {
 			if (shapeIsAlive){
 				if (direction.equals("left")) {
@@ -253,7 +245,7 @@ public class GameField extends JFrame{
 	
 	public boolean canMoveLeftOfRight(String direction) {
 		randomShapeLocation = randomShape.getLocation();
-		// Столкнулась ли объект-фигура с упавшими объект-фигурами по бокам?
+		// РЎС‚РѕР»РєРЅСѓР»Р°СЃСЊ Р»Рё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР° СЃ СѓРїР°РІС€РёРјРё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР°РјРё РїРѕ Р±РѕРєР°Рј?
 		if (!fallenShapes.isEmpty()) {
 			int [] newRandomShapeLocation;
 			if (direction.equals("left")) { newRandomShapeLocation = randomShape.getNewLeft(); 
@@ -264,7 +256,7 @@ public class GameField extends JFrame{
 					return false;
 				}
 			}
-		// Столкнулась ли объект-фигура с краями игрового поля?
+		// РЎС‚РѕР»РєРЅСѓР»Р°СЃСЊ Р»Рё РѕР±СЉРµРєС‚-С„РёРіСѓСЂР° СЃ РєСЂР°СЏРјРё РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ?
 		if (direction.equals("left")) {
 			for (int i=0; i<4; i++) 
 				if ((randomShapeLocation[i]%gameFieldWeight)==0 ) 
@@ -278,35 +270,32 @@ public class GameField extends JFrame{
 	}
 	
 	public boolean isGameOver() {
-		boolean result = false;
-		mainLoopGameOver:
 		if (!fallenShapes.isEmpty()) 
 			for (int i=0; i<firstLine.length; i++) 
 				for (int j=fallenShapesArray.length-1; j>=0 ;j--) 
 					if (firstLine[i] == fallenShapesArray[j] ) {
-						result = true;
-						break mainLoopGameOver;
+						return true;
 					}		
-		return result;
+		return false;
 	}
 	
-	public int getRandomNumber(int size) { // Получение произвольного integer'а в пределах переданного аргумента
+	public int getRandomNumber(int size) { // РџРѕР»СѓС‡РµРЅРёРµ РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ integer'Р° РІ РїСЂРµРґРµР»Р°С… РїРµСЂРµРґР°РЅРЅРѕРіРѕ Р°СЂРіСѓРјРµРЅС‚Р°
 		int number = (int)(Math.random()*size);
 		return number;}
 	
-	public Color getRandomColor() { // Получение произвольного цвета
+	public Color getRandomColor() { // РџРѕР»СѓС‡РµРЅРёРµ РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ С†РІРµС‚Р°
 		int red = (int)(Math.random()*255);
 		int green = (int)(Math.random()*255);
 		int blue = (int)(Math.random()*255);
 		return new Color(red, green, blue);}
 	
-	public class Painter extends JPanel { // Панель для рисования обектов исходя из их координат		
+	public class Painter extends JPanel { // РџР°РЅРµР»СЊ РґР»СЏ СЂРёСЃРѕРІР°РЅРёСЏ РѕР±РµРєС‚РѕРІ РёСЃС…РѕРґСЏ РёР· РёС… РєРѕРѕСЂРґРёРЅР°С‚		
 		public void paintComponent(Graphics g) {
-			for (int w=0; w<=gameFieldWeight; w++)	// Рисуем вертикальные линии сетки
+			for (int w=0; w<=gameFieldWeight; w++)	// Р РёСЃСѓРµРј РІРµСЂС‚РёРєР°Р»СЊРЅС‹Рµ Р»РёРЅРёРё СЃРµС‚РєРё
 				for (int h=0; h<=(gameFieldHight)*blockSize; h++){
 					g.setColor(Color.gray);
 					g.fillRect(w*blockSize, h, 1, 1);	}
-			for (int h=0; h<=gameFieldHight; h++) // Рисуем горизонтальные линии сетки
+			for (int h=0; h<=gameFieldHight; h++) // Р РёСЃСѓРµРј РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅС‹Рµ Р»РёРЅРёРё СЃРµС‚РєРё
 				for (int w=0; w<=(gameFieldWeight)*blockSize; w++){
 					g.setColor(Color.gray);
 					g.fillRect(w, h*blockSize, 1, 1);}
@@ -317,15 +306,15 @@ public class GameField extends JFrame{
 		}
 		public void paintObjects(Graphics g) {
 			randomShapeLocation = randomShape.getLocation();
-			for (int i=0; i<4; i++) { // Рисуем активную объект-фигуру
+			for (int i=0; i<4; i++) { // Р РёСЃСѓРµРј Р°РєС‚РёРІРЅСѓСЋ РѕР±СЉРµРєС‚-С„РёРіСѓСЂСѓ
 				int x = (randomShapeLocation[i]%gameFieldWeight)*blockSize;
 				int y = (int)(randomShapeLocation[i]/gameFieldWeight)*blockSize;
 				g.setColor(randomShapeColor);
 				g.fillRect(x, y, blockSize, blockSize);}
-			if (!fallenShapes.isEmpty()) paintFallenShapes(g);// Рисуем упавшие объекты-фигуры, если они есть
+			if (!fallenShapes.isEmpty()) paintFallenShapes(g);// Р РёСЃСѓРµРј СѓРїР°РІС€РёРµ РѕР±СЉРµРєС‚С‹-С„РёРіСѓСЂС‹, РµСЃР»Рё РѕРЅРё РµСЃС‚СЊ
 		}		
 		
-		public void paintFallenShapes(Graphics g) { // Метод для рисования упавших объект-фигур
+		public void paintFallenShapes(Graphics g) { // РњРµС‚РѕРґ РґР»СЏ СЂРёСЃРѕРІР°РЅРёСЏ СѓРїР°РІС€РёС… РѕР±СЉРµРєС‚-С„РёРіСѓСЂ
 			fallenShapesArray = fallenShapes.getLocation();
 			for ( int i=0; i<fallenShapesArray.length;i++ ) {
 				int x = (fallenShapesArray[i]%gameFieldWeight)*blockSize;
