@@ -10,7 +10,6 @@ public class IShape extends Shapes {
 	Color color;
 	int rotateCount=2;
 	
-	
 	public IShape(int w, int h) {
 		super(w,h);
 		color = getRandomColor();
