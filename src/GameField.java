@@ -11,9 +11,9 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 public class GameField extends JFrame{
-	private int blockSize = 30;
-	private static int gameFieldWeight = 6;
-	private static int gameFieldHight = 9;
+	private int blockSize = 40;
+	private static int gameFieldWeight = 10;
+	private static int gameFieldHight = 13;
 	private Timer timer;
 	private boolean shapeIsAlive = false;
 	Painter paintPanel;
@@ -64,7 +64,7 @@ public class GameField extends JFrame{
 		setSize((blockSize*gameFieldWeight)+18, (blockSize*gameFieldHight)+40);
 		paintPanel = new Painter();
 		getContentPane().add(BorderLayout.CENTER, paintPanel);
-		timer = new Timer(1000/gameSpeed, new TimerActionListener());
+		timer = new Timer(2000/gameSpeed, new TimerActionListener());
 		setLocation(400, 50);
 		setVisible(true); 
 		
@@ -85,6 +85,14 @@ public class GameField extends JFrame{
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
 	        	moveShape("right");
+	        }
+	      });
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("UP"), "doRotate");
+	    actionMap.put("doRotate", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	rotateShape();
 	        }
 	      });
 	   
@@ -141,7 +149,7 @@ public class GameField extends JFrame{
 	
 	public void createShape() { // Создание объектов-фигур для игрового поля
 			//randomShapeIndex = getRandomNumber(7);
-			randomShapeIndex = 1; // для теста
+			randomShapeIndex = 0; // для теста
 			switch (randomShapeIndex) {
 	           case  (0): {
 	        	   iShape = new IShape(gameFieldWeight, gameFieldHight) ;
@@ -186,6 +194,25 @@ public class GameField extends JFrame{
 			randomShapeColor = randomShape.getColor();
 			shapeIsAlive = true;	
 	}
+	public void rotateShape(){ // Изменение координат объекта-фигуры - вниз по игровому полю
+		if (!isGameOver()) {
+			if (shapeIsAlive){
+				randomShape.rotate();
+				randomShapeLocation = randomShape.getLocation();
+				fallenShapesArray = fallenShapes.getLocation();
+				if (isFallen()) {
+					shapeIsAlive = false;
+					fallenShapes.add(randomShapeLocation);
+					repaint();
+					if (fallenShapes.isLineFull()) {
+						fallenShapes.destroyFullLine();
+						repaint();
+						} 
+					}	repaint();
+				}			
+			} else 	timer.stop();
+	}
+	
 	
 	public void moveShape(){ // Изменение координат объекта-фигуры - вниз по игровому полю
 		randomShape.fall();
